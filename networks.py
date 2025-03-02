@@ -451,7 +451,7 @@ class TextEncoder(nn.Module):
     def forward(self, ihc_id):
         if isinstance(ihc_id, torch.Tensor):
             ihc_id = ihc_id.item()  
-        # 获取位置描述
+        
         text = self.simple_desc[ihc_id] 
         
         tokens = self.tokenizer(text, return_tensors="pt", padding=True).to(device=torch.device('cuda' if torch.cuda.is_available() else 'cpu'))
