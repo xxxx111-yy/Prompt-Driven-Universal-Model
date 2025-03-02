@@ -105,34 +105,8 @@ class Discriminator(nn.Module):
         x1_2 = self.model2(x1_1)
         x1_3 = self.model3(x1_2)
         x1_4 = self.model4(x1_3)
-        
-        x1_1 = F.interpolate(x1_1, scale_factor=0.125)
-        diffY1 = x1_4.size()[2] - x1_1.size()[2]
-        diffX1 = x1_4.size()[3] - x1_1.size()[3]
-        x1_1 = F.pad(x1_1, [diffX1 // 2, diffX1 - diffX1 // 2,
-                        diffY1 // 2, diffY1 - diffY1 // 2])
-        #x1 = torch.cat([x1_1, x1_4], dim=1)
-
-        x1_2 = F.interpolate(x1_2, scale_factor=0.25)
-        diffY2 = x1_4.size()[2] - x1_2.size()[2]
-        diffX2 = x1_4.size()[3] - x1_2.size()[3]
-        x1_2 = F.pad(x1_2, [diffX2 // 2, diffX2 - diffX2 // 2,
-                        diffY2 // 2, diffY2 - diffY2 // 2])
-        #x1 = torch.cat([x1, x1_2], dim=1)
-        
-        x1_3 = F.interpolate(x1_3, scale_factor=0.25)
-        diffY3 = x1_4.size()[2] - x1_3.size()[2]
-        diffX3 = x1_4.size()[3] - x1_3.size()[3]
-        x1_3 = F.pad(x1_3, [diffX3 // 2, diffX3 - diffX3 // 2,
-                        diffY3 // 2, diffY3 - diffY3 // 2])
-
-        x1 = torch.cat([x1_1, x1_2, x1_3, x1_4], dim=1)
-
- 
         x2 = self.model_final(x1_4)
-        x3 = self.model_second(x1)
-
-        return F.avg_pool2d(x2, x2.size()[2:]).view(x2.size()[0], -1),x1,x3,x3
+        return F.avg_pool2d(x2, x2.size()[2:]).view(x2.size()[0], -1)
 
     
 
@@ -149,12 +123,9 @@ class Discriminator(nn.Module):
     
     def calc_dis_loss(self, input_fake, input_real):
         # calculate the loss to train D
-        outs0,_,_ = self.forward(input_fake)
-        outs1,_,_ = self.forward(input_real)
+        outs0 = self.forward(input_fake)
+        outs1 = self.forward(input_real)
         loss = 0
-        #SR_loss = 10 * self.L1_loss(SysRegist_AB, input_real)  ###SR
-        #SM_loss = 5 * smooothing_loss(Trans)
-        #loss = loss + SM_loss
         for it, (out0, out1) in enumerate(zip(outs0, outs1)):
             if self.gan_type == 'lsgan':
                 loss += torch.mean((out0 - 0)**2) + torch.mean((out1 - 1)**2)
@@ -173,8 +144,8 @@ class Discriminator(nn.Module):
     
     def calc_gen_loss(self, input_fake, input_real):
         # calculate the loss to train G
-        outs0,_,_ = self.forward(input_fake)
-        outs1,_,_ = self.forward(input_real)
+        outs0 = self.forward(input_fake)
+        outs1 = self.forward(input_real)
 
         loss = 0
         for it, (out0, out1) in enumerate(zip(outs0, outs1)):
