@@ -429,6 +429,10 @@ class TextEncoder(nn.Module):
         #self.url = "microsoft/BiomedNLP-PubMedBERT-base-uncased-abstract-fulltext"
         self.tokenizer = AutoTokenizer.from_pretrained(self.url, trust_remote_code=True)
         self.bert = AutoModel.from_pretrained(self.url, trust_remote_code=True)
+        for param in self.bert.parameters():
+            param.requires_grad = False
+            
+            
         self.projection = nn.Sequential(
                             nn.Linear(768, 256),  
                             nn.ReLU(),            
@@ -447,13 +451,18 @@ class TextEncoder(nn.Module):
     def forward(self, ihc_id):
         if isinstance(ihc_id, torch.Tensor):
             ihc_id = ihc_id.item()  
- 
+        # 获取位置描述
         text = self.simple_desc[ihc_id] 
         
         tokens = self.tokenizer(text, return_tensors="pt", padding=True).to(device=torch.device('cuda' if torch.cuda.is_available() else 'cpu'))
-        outputs = self.bert(**tokens)
-        text_features = self.projection(outputs.last_hidden_state[:, 0, :])
+        
+        with torch.no_grad():
+            outputs = self.bert(**tokens)
+            bert_features = outputs.last_hidden_state[:, 0, :]
+            
+        text_features = self.projection(bert_features)
         return text_features
+    
 
 
 class GeneratorPromptEnhanced(nn.Module):
