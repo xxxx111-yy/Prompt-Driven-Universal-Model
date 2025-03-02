@@ -153,12 +153,12 @@ class CycPrompt_Trainer():
                 self.optimizer_D_B.zero_grad()
 
                 # Real loss
-                pred_real,_,real_feature,_ = self.netD_B(real_A)
+                pred_real,_,_,_ = self.netD_B(real_A)
                 loss_D_real = self.config['Adv_lamda'] * self.MSE_loss(pred_real, self.target_real)
 
                 # Fake loss
                 fake_B2A = self.fake_B_buffer.push_and_pop(fake_B2A)
-                pred_fake,_,fake_feature,_ = self.netD_B(fake_B2A.detach())
+                pred_fake,_,_,_ = self.netD_B(fake_B2A.detach())
                 loss_D_fake = self.config['Adv_lamda'] * self.MSE_loss(pred_fake, self.target_fake)
 
 
